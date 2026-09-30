@@ -1,0 +1,218 @@
+---
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+# ---------------------------------------------------------------------------
+# Formatters
+# ---------------------------------------------------------------------------
+formatters:
+  enable:
+    - gofumpt
+    - gci
+    - golines
+  settings:
+    gofumpt:
+      extra:
+        group-params: true
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
+      custom-order: true
+    golines:
+      max-len: 120
+  exclusions:
+    generated: strict
+
+# ---------------------------------------------------------------------------
+# Linters
+# ---------------------------------------------------------------------------
+linters:
+  default: all
+
+  disable:
+    # Deprecated aliases; their _v5 / _v2 successors are enabled by `all`.
+    - exhaustruct
+    - gomodguard
+    - wsl
+
+    # Duplicates of stricter linters that are kept.
+    - nlreturn
+
+    # Needs project-specific input to do anything useful.
+    - goheader
+    - gomodguard_v2
+
+    # Fights the Go zero-value idiom: every struct literal (http.Server,
+    # slog.HandlerOptions, ...) would have to list every field.
+    - exhaustruct_v5
+
+  settings:
+    # --- Errors --------------------------------------------------------------
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+    wrapcheck:
+      ignore-package-globs:
+        - github.com/NeilMcB/go-compiler/*
+    nilnil:
+      detect-opposite: true
+
+    # --- Correctness ---------------------------------------------------------
+    govet:
+      enable-all: true
+      settings:
+        shadow:
+          strict: true
+    staticcheck:
+      checks: ["all"]
+    exhaustive:
+      default-signifies-exhaustive: false
+      check:
+        - switch
+        - map
+    gosec:
+      severity: low
+      confidence: low
+
+    # --- Complexity ----------------------------------------------------------
+    cyclop:
+      max-complexity: 10
+      package-average: 5
+    gocyclo:
+      min-complexity: 10
+    gocognit:
+      min-complexity: 15
+    nestif:
+      min-complexity: 3
+    funlen:
+      lines: 60
+      statements: 40
+      ignore-comments: true
+    maintidx:
+      under: 30
+    dupl:
+      threshold: 100
+    interfacebloat:
+      max: 5
+
+    # --- Style ---------------------------------------------------------------
+    lll:
+      line-length: 120
+    nakedret:
+      max-func-lines: 0
+    varnamelen:
+      max-distance: 6
+      min-name-length: 3
+      ignore-decls:
+        - ctx context.Context
+        - t *testing.T
+        - b *testing.B
+        - f *testing.F
+        - tb testing.TB
+        - w http.ResponseWriter
+        - r *http.Request
+        - wg sync.WaitGroup
+        - mu sync.Mutex
+        - i int
+        - j int
+      ignore-names:
+        - err
+        - ok
+        - id
+        - db
+        - tx
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+          yaml: snake
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        - unnamedResult
+        - whyNoLint
+    revive:
+      enable-all-rules: true
+      rules:
+        # Duplicates of dedicated linters configured above.
+        - name: line-length-limit
+          disabled: true
+        - name: add-constant
+          disabled: true
+        - name: cognitive-complexity
+          disabled: true
+        - name: cyclomatic
+          disabled: true
+        - name: function-length
+          disabled: true
+        - name: unhandled-error
+          disabled: true
+        # Need project-specific arguments.
+        - name: file-header
+          disabled: true
+        - name: banned-characters
+          disabled: true
+    godot:
+      scope: all
+      capital: true
+    sloglint:
+      no-mixed-args: true
+      attr-only: true
+      context: all
+      static-msg: true
+      key-naming-case: snake
+    testifylint:
+      enable-all: true
+    usetesting:
+      os-temp-dir: true
+    paralleltest:
+      ignore-missing-subtests: false
+
+    # --- Imports -------------------------------------------------------------
+    depguard:
+      rules:
+        main:
+          list-mode: lax
+          deny:
+            - pkg: io/ioutil
+              desc: deprecated; use io and os
+            - pkg: github.com/pkg/errors
+              desc: use stdlib errors and fmt.Errorf with %w
+            - pkg: math/rand$
+              desc: use math/rand/v2 (or crypto/rand for secrets)
+            - pkg: golang.org/x/exp/slices
+              desc: use stdlib slices
+            - pkg: golang.org/x/exp/maps
+              desc: use stdlib maps
+
+    # --- Linter hygiene ------------------------------------------------------
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+
+  exclusions:
+    generated: strict
+    presets: []
+    rules:
+      # Table-driven tests are long by design, and their literals are intentional.
+      - path: _test\.go
+        linters:
+          - goconst
+          - funlen
+
+# ---------------------------------------------------------------------------
+# Reporting
+# ---------------------------------------------------------------------------
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
