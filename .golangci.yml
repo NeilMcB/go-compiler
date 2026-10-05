@@ -51,6 +51,10 @@ linters:
     # slog.HandlerOptions, ...) would have to list every field.
     - exhaustruct_v5
 
+    # Stylistic preference: `if err := f(); err != nil` keeps err in the
+    # narrowest scope and is the form used throughout the standard library.
+    - noinlineerr
+
   settings:
     # --- Errors --------------------------------------------------------------
     errcheck:
@@ -118,6 +122,7 @@ linters:
         - b *testing.B
         - f *testing.F
         - tb testing.TB
+        - in io.Reader
         - w http.ResponseWriter
         - r *http.Request
         - wg sync.WaitGroup
